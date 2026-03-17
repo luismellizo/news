@@ -25,6 +25,16 @@ class DataStore:
             }
         }
         
+        self.ormuz = {
+            "estado": "🟡 INIT",
+            "transitos_24h": 0,
+            "tanqueros_esperando": 0,
+            "trafico_caido_pct": 0.0,
+            "ultima_actualizacion": "Sin datos",
+            "error": "",
+            "transitos_anterior": 0
+        }
+        
         self.correlaciones = {
             "spy_btc_60m": 0.0,
             "spy_uso_60m": 0.0,

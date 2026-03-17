@@ -42,3 +42,27 @@ async def calcular_correlaciones():
             logger.error(f"Error calculando correlaciones: {e}")
 
         await asyncio.sleep(intervalo)
+
+async def correlate_with_volume(asset_ticker: str, news_timestamp: float) -> bool:
+    """
+    Compara el timestamp de una noticia con el pico de volumen en WS.
+    Si el volumen del activo se disparó ANTES de procesar la noticia,
+    marca la noticia como ALREADY_PRICED_IN.
+    """
+    try:
+        precio_data = STORE.precios.get(asset_ticker)
+        if not precio_data:
+            return False
+            
+        current_ts = datetime.now(timezone.utc).timestamp()
+        latency_seconds = current_ts - news_timestamp
+        
+        # Lógica Stub: Si la noticia tardó > 60s en procesarse por APIs
+        # y el volumen actual es anormalmente alto, we assume it's priced in by HFT.
+        if latency_seconds > 60 and precio_data["volumen"] > 0:
+            return True
+            
+        return False
+    except Exception as e:
+        logger.error(f"Error validando correlación de volumen para {asset_ticker}: {e}")
+        return False

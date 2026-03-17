@@ -11,6 +11,7 @@ from backend.scrapers.farside_etf import scraper_btc_etf_inflows
 from backend.scrapers.yields import scraper_yields
 from backend.scrapers.correlations import calcular_correlaciones
 from backend.scrapers.macro_news import fetch_macro_noticias
+from backend.scrapers.hormuz_strait import scraper_ormuz
 from backend.alerter import loop_alertas
 
 logging.basicConfig(
