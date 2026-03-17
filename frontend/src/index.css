@@ -1,0 +1,309 @@
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@300;400;600;700&display=swap');
+
+:root {
+  /* Institutional Color Palette */
+  --bg-color: #050505;
+  --panel-bg: #0c0c0e;
+  --panel-border: #1f1f22;
+  --text-primary: #ededed;
+  --text-dim: #71717a;
+  
+  /* Quant Accents */
+  --accent-up: #10b981;    /* Emerald green */
+  --accent-down: #ef4444;  /* Crisp red */
+  --accent-warn: #f59e0b;  /* Amber */
+  --accent-brand: #3b82f6; /* Blue for borders/brand */
+  
+  --font-mono: 'Geist Mono', 'Courier New', monospace;
+  --font-size-base: 13px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  font-size: var(--font-size-base);
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Tabular Nums - Crucial for Finance */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Header */
+header {
+  background: linear-gradient(90deg, #18181b 0%, #09090b 100%);
+  color: var(--text-primary);
+  padding: 6px 16px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 12px;
+  letter-spacing: 1px;
+}
+
+/* Main Layout */
+main {
+  flex-grow: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr 340px;
+  grid-template-rows: 1fr;
+  gap: 1px;
+  background-color: var(--panel-border); 
+}
+
+/* Panels */
+.panel {
+  background-color: var(--panel-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+.multi-row {
+  display: grid;
+  grid-template-rows: repeat(2, 1fr);
+  gap: 1px;
+  background-color: var(--panel-border);
+}
+
+.panel-header {
+  color: var(--text-dim);
+  font-weight: 600;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--panel-border);
+  text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.panel-content {
+  padding: 16px 12px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Ticker Box */
+.ticker-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.ticker-symbol {
+  font-weight: 700;
+  font-size: 2rem;
+  letter-spacing: -1px;
+}
+
+.ticker-price {
+  font-weight: 600;
+  font-size: 2.5rem;
+  letter-spacing: -2px;
+}
+
+/* Colors */
+.text-up { color: var(--accent-up); }
+.text-down { color: var(--accent-down); }
+.text-dim { color: var(--text-dim); }
+.text-warn { color: var(--accent-warn); }
+.text-brand { color: var(--accent-brand); }
+
+/* Backgrounds for tags */
+.bg-up { background-color: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.5); }
+.bg-down { background-color: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); }
+
+/* Animation Subtlety (Flash text instead of background) */
+@keyframes text-flash-up {
+  0% { color: #fff; text-shadow: 0 0 8px var(--accent-up); }
+  100% { color: var(--accent-up); text-shadow: none; }
+}
+
+@keyframes text-flash-down {
+  0% { color: #fff; text-shadow: 0 0 8px var(--accent-down); }
+  100% { color: var(--accent-down); text-shadow: none; }
+}
+
+.flash-up-text { animation: text-flash-up 0.8s ease-out forwards; }
+.flash-down-text { animation: text-flash-down 0.8s ease-out forwards; }
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.status-live { background-color: var(--accent-up); box-shadow: 0 0 6px var(--accent-up); }
+
+/* Table overrides */
+.quant-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.quant-table th {
+  text-align: left;
+  color: var(--text-dim);
+  font-weight: 400;
+  padding-bottom: 8px;
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.quant-table td {
+  padding: 8px 0;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.05);
+}
+
+/* News List */
+.news-item {
+  margin-bottom: 12px;
+  padding-left: 10px;
+  border-left: 2px solid var(--panel-border);
+  transition: border-color 0.2s;
+}
+.news-item:hover {
+  border-left-color: var(--accent-brand);
+}
+.news-time {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 2px;
+}
+
+/* Search Bar */
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.search-input {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--panel-border);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  outline: none;
+  width: 250px;
+  transition: all 0.2s;
+}
+
+.search-input:focus {
+  border-color: var(--accent-brand);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.search-results {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-top: none;
+  z-index: 50;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.search-result-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.search-result-item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.search-result-item .symbol {
+  font-weight: 600;
+  color: var(--accent-brand);
+}
+
+.search-result-item .desc {
+  font-size: 10px;
+  color: var(--text-dim);
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Watchlist Grid */
+.watchlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  padding: 12px;
+}
+
+.watch-card {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid var(--panel-border);
+  padding: 8px;
+  border-radius: 4px;
+  position: relative;
+}
+
+.watch-card:hover {
+  border-color: rgba(255,255,255,0.1);
+}
+
+.watch-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  cursor: pointer;
+  color: var(--text-dim);
+  font-size: 10px;
+}
+
+.watch-remove:hover {
+  color: var(--accent-down);
+}
+
+.watch-symbol {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.watch-price {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 4px 0;
+}

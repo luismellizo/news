@@ -1,0 +1,27 @@
+# Entornos virtuales Python
+venv/
+env/
+.env/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
+bloomberg_backend.log
+
+# Frontend (Node.js/Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+frontend/*.local
+frontend/.eslintcache
+
+# Archivos de configuración con secretos
+config.json
+.env
+
+# SO
+.DS_Store
+Thumbs.db
