@@ -9,7 +9,8 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 echo -e "\n[1/3] Iniciando Backend FastAPI..."
 source ~/.python-global/bin/activate
 pip install -q fastapi uvicorn requests beautifulsoup4 \
-    python-telegram-bot websockets yfinance lxml numpy 2>/dev/null
+    python-telegram-bot websockets yfinance lxml numpy \
+    instructor openai 2>/dev/null
 
 # Matar backend previo si quedo zombie
 pkill -f "uvicorn backend.main:app" 2>/dev/null

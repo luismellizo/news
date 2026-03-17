@@ -3,6 +3,8 @@ import requests
 from datetime import datetime, timezone
 import logging
 from pydantic import BaseModel, Field
+import instructor
+from openai import AsyncOpenAI
 
 from backend.config import config
 from backend.store import STORE
@@ -10,29 +12,46 @@ from backend.scrapers.correlations import correlate_with_volume
 
 logger = logging.getLogger("Bloomberg")
 
+# Definición del esquema estructurado para la IA
 class NewsSentiment(BaseModel):
-    sentiment: str = Field(..., description="bullish, bearish, or neutral")
-    confidence_score: float = Field(..., description="0.0 to 1.0 confidence")
-    market_impact_justification: str = Field(..., description="Brief justification")
+    sentiment: str = Field(..., description="Must be 'bullish', 'bearish', or 'neutral'")
+    confidence_score: float = Field(..., description="A confidence score from 0.0 to 1.0 reflecting how clear the directional market impact is.")
+    market_impact_justification: str = Field(..., description="Brief justification of why the market could react this way based solely on the text.")
+
+# Inicialización del cliente OpenAI parcheado con Instructor para validación Pydantic
+# Requiere OPENAI_API_KEY en el entorno
+client = instructor.from_openai(AsyncOpenAI())
 
 async def analyze_news_sentiment(headline: str, summary: str, source: str) -> NewsSentiment:
     """
-    Placeholder para llamada a LLM (OpenAI/Anthropic/Gemini/FinBERT).
-    Toma el headline y summary y fuerza una salida JSON estructurada con Pydantic.
+    Llamada REAL asíncrona a GPT-4o-mini usando Instructor para análisis semántico.
+    CERO lógica de palabras clave. Extrae sentimiento puro del contexto.
     """
     try:
-        # Aquí iría la integración con Instructor o client.beta.chat.completions.parse(response_model=NewsSentiment, ...)
-        # Simularemos una lógica semántica mockeada para cumplir con la firma.
-        texto = (headline + " " + summary).lower()
-        if "surge" in texto or "beat" in texto or "upgrade" in texto or "record" in texto:
-            return NewsSentiment(sentiment="bullish", confidence_score=0.85, market_impact_justification="Positive economic indicators detected via semantics.")
-        elif "crash" in texto or "drop" in texto or "fear" in texto or "crisis" in texto:
-            return NewsSentiment(sentiment="bearish", confidence_score=0.85, market_impact_justification="Negative market stress factors identified via semantics.")
-        else:
-            return NewsSentiment(sentiment="neutral", confidence_score=0.4, market_impact_justification="No clear directional market impact found.")
+        response = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            response_model=NewsSentiment,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a professional market analyst. Analyze the following news and determine its impact on the US markets."
+                },
+                {
+                    "role": "user", 
+                    "content": f"Source: {source}\nHeadline: {headline}\nSummary: {summary}"
+                }
+            ],
+            temperature=0,
+        )
+        return response
     except Exception as e:
-        logger.error(f"Error en LLM Sentiment Analysis: {e}")
-        return NewsSentiment(sentiment="neutral", confidence_score=0.0, market_impact_justification="Error in AI processing")
+        logger.error(f"Error analizando sentimiento con LLM: {e}")
+        # Valor seguro en caso de fallo de API pero manteniendo la estructura
+        return NewsSentiment(
+            sentiment="neutral", 
+            confidence_score=0.0, 
+            market_impact_justification=f"API Error: {str(e)}"
+        )
 
 async def fetch_macro_noticias():
     api_key = config.get("finnhub_api_key", "")
@@ -48,7 +67,7 @@ async def fetch_macro_noticias():
     while True:
         try:
             if not api_key or api_key == "TU_API_KEY_FINNHUB_AQUI":
-                STORE.macro["error"] = "Sin API key"
+                STORE.macro["error"] = "Sin API key de Finnhub"
                 await asyncio.sleep(intervalo)
                 continue
 
@@ -61,17 +80,21 @@ async def fetch_macro_noticias():
                 total_score = 0.0
                 processed_news = []
                 
-                for n in noticias:
+                # Ejecutamos análisis en paralelo para reducir latencia total del batch
+                tareas_sentiment = [
+                    analyze_news_sentiment(n.get("headline", ""), n.get("summary", ""), n.get("source", ""))
+                    for n in noticias
+                ]
+                sentimientos = await asyncio.gather(*tareas_sentiment)
+
+                for idx, n in enumerate(noticias):
                     headline = n.get("headline", "")
-                    summary = n.get("summary", "")
                     source = n.get("source", "")
                     timestamp = n.get("datetime", 0)
+                    ai_analysis = sentimientos[idx]
                     
-                    # Pasar por el LLM estructurado asincrónicamente
-                    ai_analysis = await analyze_news_sentiment(headline, summary, source)
-                    
-                    # Ponderación dinámica de fuentes ("Source Weighting")
-                    weight = source_weights.get(source, 1.0)
+                    # Ponderación de fuente
+                    weight = 1.0
                     for k, v in source_weights.items():
                         if k.lower() in source.lower():
                             weight = v
@@ -84,7 +107,7 @@ async def fetch_macro_noticias():
                     elif ai_analysis.sentiment == "bearish":
                         total_score -= adjusted_confidence
                     
-                    # Validación de correlación de volumen para front-running (ALREADY_PRICED_IN)
+                    # Verificación de si el mercado ya reaccionó (front-running)
                     latency_ts = datetime.now(timezone.utc).timestamp()
                     priced_in = await correlate_with_volume("SPY", timestamp)
 
@@ -111,7 +134,7 @@ async def fetch_macro_noticias():
                 STORE.macro["error"] = f"HTTP {resp.status_code}"
 
         except Exception as e:
-            logger.error(f"Error fetching macro news: {e}")
+            logger.error(f"Error procesando noticias con AI: {e}")
             STORE.macro["error"] = str(e)[:50]
 
         await asyncio.sleep(intervalo)
